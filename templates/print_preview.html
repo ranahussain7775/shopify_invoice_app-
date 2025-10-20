@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Preview - Invoices</title>
+    <style>
+        body {
+            background-color: #525659;
+            margin: 0;
+            font-family: sans-serif;
+        }
+        .invoice-wrapper {
+            /* A5 Landscape size */
+            width: 210mm; 
+            height: 148mm; 
+            margin: 20px auto;
+            page-break-after: always; /* Print করার সময় প্রতিটি ইনভয়েস নতুন পৃষ্ঠায় যাবে */
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        /* Print করার স্টাইল */
+        @media print {
+            body {
+                background-color: transparent;
+            }
+            .invoice-wrapper {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            @page {
+                size: A5 landscape;
+                margin: 0; /* কোনো মার্জিন থাকবে না */
+            }
+        }
+    </style>
+</head>
+<body>
+    {% for order in orders %}
+        <div class="invoice-wrapper">
+            {% include 'invoice_template.html' %}
+        </div>
+    {% else %}
+        <h1 style="color: white; text-align: center;">No invoices to preview.</h1>
+    {% endfor %}
+
+    <script>
+        // পেজ লোড হওয়ার সাথে সাথে স্বয়ংক্রিয়ভাবে Print ডায়ালগ ওপেন হবে
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

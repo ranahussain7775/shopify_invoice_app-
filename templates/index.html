@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopify Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 1400px; }
+        .table-responsive { max-height: 70vh; }
+        .badge { font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container my-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h1 class="mb-0 h4">Shopify Orders Dashboard</h1>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/" class="row g-3 align-items-center mb-4 bg-light p-3 rounded border">
+                    <div class="col-md-4">
+                        <label for="payment_status" class="form-label fw-bold">Payment Status</label>
+                        <select name="payment_status" id="payment_status" class="form-select">
+                            <option value="any" {% if payment_status == 'any' %}selected{% endif %}>Any</option>
+                            <option value="pending" {% if payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="paid" {% if payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                            <option value="refunded" {% if payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="fulfillment_status" class="form-label fw-bold">Fulfillment Status</label>
+                        <select name="fulfillment_status" id="fulfillment_status" class="form-select">
+                            <option value="any" {% if fulfillment_status == 'any' %}selected{% endif %}>Any</option>
+                            <option value="shipped" {% if fulfillment_status == 'shipped' %}selected{% endif %}>Shipped</option>
+                            <option value="partial" {% if fulfillment_status == 'partial' %}selected{% endif %}>Partial</option>
+                            <option value="unshipped" {% if fulfillment_status == 'unshipped' %}selected{% endif %}>Unshipped</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-grid">
+                         <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Filter Orders</button>
+                    </div>
+                </form>
+
+                <div class="mb-3">
+                    <button id="printSelectedBtn" class="btn btn-success">🖨️ Print Selected Invoices</button>
+                    <button id="downloadSelectedBtn" class="btn btn-info">📥 Download Selected Invoices (ZIP)</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover border">
+                        <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th style="width: 20px;"><input type="checkbox" id="selectAllCheckbox" class="form-check-input"></th>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Payment Status</th>
+                                <th>Fulfillment Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input order-checkbox" value="{{ order.id }}"></td>
+                                <td><strong>{{ order.name }}</strong></td>
+                                <td>{{ order.created_at.split('T')[0] }}</td>
+                                <td>{{ order.customer.first_name }} {{ order.customer.last_name }}</td>
+                                <td>{{ order.total_price }} {{ order.currency }}</td>
+                                <td><span class="badge rounded-pill bg-{{ 'success' if order.financial_status == 'paid' else 'warning text-dark' }}">{{ order.financial_status }}</span></td>
+                                <td><span class="badge rounded-pill bg-{{ 'primary' if order.fulfillment_status == 'fulfilled' or order.fulfillment_status == 'shipped' else 'secondary' }}">{{ order.fulfillment_status or 'Unfulfilled' }}</span></td>
+                                <td>
+                                    <a href="/invoice/{{ order.id }}" class="btn btn-outline-primary btn-sm" target="_blank">View Invoice</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <p class="h5">No orders found.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+            const printSelectedBtn = document.getElementById('printSelectedBtn');
+            const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+
+            // Select All functionality (Apnar original code)
+            selectAllCheckbox.addEventListener('change', function () {
+                orderCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+
+            // "Print Selected" functionality (Apnar original loop style rekhe update kora)
+            printSelectedBtn.addEventListener('click', function () {
+                const selectedOrderIds = [];
+                orderCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedOrderIds.push(checkbox.value);
+                    }
+                });
+                if (selectedOrderIds.length === 0) {
+                    alert('Please select at least one order to print.');
+                    return;
+                }
+                
+                // === UPDATE: Ager code bodle print-preview te pathano hocche ===
+                const url = `/print-preview?order_ids=${selectedOrderIds.join(',')}`;
+                window.open(url, '_blank');
+                // === END UPDATE ===
+            });
+
+            // "Download Selected" functionality (Apnar original code)
+            downloadSelectedBtn.addEventListener('click', function () {
+                const selectedOrderIds = [];
+                orderCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedOrderIds.push(checkbox.value);
+                    }
+                });
+
+                if (selectedOrderIds.length === 0) {
+                    alert('Please select at least one order to download.');
+                    return;
+                }
+                const url = `/download-zip?order_ids=${selectedOrderIds.join(',')}`;
+                window.location.href = url;
+            });
+        });
+    </script>
+</body>
+</html>

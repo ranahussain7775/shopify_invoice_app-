@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Invoice {{ order.name }}</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 10.5px;
+        color: #000;
+        margin: 0;
+        padding: 0;
+    }
+    .invoice-box {
+        width: 100%;
+        padding: 0;
+        page-break-inside: avoid !important;
+    }
+    strong {
+        font-weight: bold;
+    }
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+    .company-details .company-name {
+        margin: 0 0 5px 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .company-details p {
+        line-height: 1.4;
+        margin: 0;
+        font-size: 10.5px;
+    }
+    .invoice-details {
+        text-align: right;
+        width: 200px;
+    }
+    .invoice-details h1 {
+        margin: 0 0 5px 0;
+        font-size: 32px;
+        font-weight: bold;
+    }
+    .invoice-meta span {
+        display: block;
+        padding: 3px 7px;
+        border: 1.5px solid #000;
+        font-size: 11px;
+        margin-top: 4px;
+        text-align: center;
+    }
+    .invoice-meta span.total-amount {
+        font-size: 17px;
+        font-weight: bold;
+        border-width: 2px;
+    }
+    .address-section {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        border-top: 2px solid #000;
+        padding-top: 6px;
+    }
+    .address {
+        width: 48%;
+    }
+    .address h3 {
+        margin: 0 0 3px 0;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .cod-badge {
+        padding: 2px 6px;
+        margin-top: 3px;
+        font-size: 9px;
+        background-color: #000;
+        color: #fff;
+        display: inline-block;
+        font-weight: bold;
+        border-radius: 3px;
+    }
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 5px;
+    }
+    .items-table thead tr {
+        background-color: #000;
+        color: #fff;
+    }
+    .items-table th {
+        padding: 6px 7px;
+        font-size: 11px;
+        text-align: left;
+        font-weight: bold;
+    }
+    .items-table td {
+        padding: 7px;
+        vertical-align: middle;
+        border-bottom: 1px solid #ddd;
+    }
+    .item-info {
+        display: flex;
+        align-items: center;
+    }
+    .item-info img {
+        width: 38px;
+        height: 38px;
+        margin-right: 8px;
+        border: 1px solid #eee;
+        object-fit: cover;
+    }
+    .item-info .item-texts {
+        line-height: 1.3;
+    }
+    .item-info .item-variant {
+        font-size: 9.5px;
+        color: #555;
+    }
+    .bottom-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        width: 100%;
+        page-break-inside: avoid !important;
+    }
+    .qr-code-container {
+        width: 80px; 
+        height: 80px;
+    }
+    .qr-code-container img {
+        width: 100%;
+        height: 100%;
+    }
+    .totals-table {
+        width: 280px;
+        border-collapse: collapse;
+    }
+    .totals-table td {
+        padding: 8px 10px;
+        border: 1.5px solid #000;
+        font-size: 11.5px;
+    }
+    .totals-table .total-label {
+        font-weight: bold;
+    }
+    .totals-table .total-value {
+        font-weight: bold;
+    }
+    .totals-table tr.grand-total td {
+        font-weight: bold;
+        font-size: 13.5px;
+    }
+    .text-right {
+        text-align: right;
+    }
+    .footer-note {
+        text-align: center;
+        margin-top: 8px;
+        padding-top: 8px;
+        font-size: 11.5px;
+        color: #333;
+        border-top: 1px dashed #ccc;
+        page-break-inside: avoid !important;
+    }
+</style>
+</head>
+<body>
+<div class="invoice-box">
+    <div class="header-section">
+        <div class="company-details">
+            <div class="company-name">Dazzle USA</div>
+            <p>
+                <strong>Company:</strong> Dazzle USA<br>
+                <strong>Phone:</strong> +8801754995923<br>
+                <strong>Email:</strong> admin@dazzleusa.store<br>
+                <strong>Address:</strong> Dhaka, Dhaka, Bangladesh<br>
+                <strong>Postal code:</strong> 1216
+            </p>
+        </div>
+        <div class="invoice-details">
+            <h1>INVOICE</h1>
+            <div class="invoice-meta">
+                <span>Invoice #{{ order.name.replace('#', '') }}</span>
+                <span>{{ order.created_at.split('T')[0] }} {{ order.created_at.split('T')[1].split('+')[0] }}</span>
+                <span class="total-amount">৳{{ order.total_price }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="address-section">
+        <div class="address shipping-address">
+            <h3>Shipping Address</h3>
+            <p>
+                {% if order.shipping_address %}
+                    <strong>Name:</strong> {{ order.shipping_address.name }}<br>
+                    <strong>Phone:</strong> {{ order.shipping_address.phone or order.phone or order.customer.phone or "N/A" }}<br>
+                    <strong>Address:</strong> {{ order.shipping_address.address1 }}, {{ order.shipping_address.city if order.shipping_address.city }}, Bangladesh
+                {% else %}
+                    No shipping address.
+                {% endif %}
+            </p>
+        </div>
+        <div class="address payment-information">
+            <h3>Payment Information</h3>
+            <p>
+                {% if order.billing_address %}
+                    <strong>Name:</strong> {{ order.billing_address.name }}<br>
+                    <strong>Phone:</strong> {{ order.billing_address.phone }}<br>
+                    <strong>Address:</strong> {{ order.billing_address.address1 }}, {{ order.billing_address.city if order.billing_address.city }}, Bangladesh
+                {% else %}
+                    Same as shipping address.
+                {% endif %}
+            </p>
+            {% if order.gateway and 'cash on delivery' in order.gateway|lower %}
+                <div class="cod-badge">Cash On Delivery (COD)</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Items</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Tax</th>
+                <th class="text-right">Tax Amount</th>
+                <th class="text-right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.line_items %}
+            <tr>
+                <td>
+                    <div class="item-info">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                        <div class="item-texts">
+                            <div>{{ item.title }}</div>
+                            {% if item.variant_title %}
+                            <div class="item-variant">Variant: {{ item.variant_title }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">৳{{ "%.2f"|format(item.price|float) }}</td>
+                <td class="text-right">৳{{ "%.2f"|format(item.total_discount|float) }}</td>
+                <td class="text-right">{{ "%.2f"|format(item.tax_lines[0].rate * 100 if item.tax_lines else 0) }}%</td>
+                <td class="text-right">
+                    ৳{{ "%.2f"|format(item.tax_lines | map(attribute='price') | map('float') | sum) }}
+                </td>
+                <td class="text-right">
+                    ৳{{ "%.2f"|format(item.price|float * item.quantity|int - item.total_discount|float) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="bottom-section">
+        <div class="qr-code-container">
+            <img src="data:image/png;base64,{{ qr_code_image }}" alt="Website QR Code">
+        </div>
+        <div class="totals-container">
+            <table class="totals-table">
+                <tbody>
+                    <tr>
+                        <td class="total-label">Subtotal</td>
+                        <td class="text-right total-value">৳{{ order.subtotal_price }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label">Shipping</td>
+                        <td class="text-right total-value">৳{{ order.shipping_lines[0].price if order.shipping_lines else '0.00' }}</td>
+                    </tr>
+                    <tr class="grand-total">
+                        <td>Grand total</td>
+                        <td class="text-right">৳{{ order.total_price }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        আপনার অর্ডারের জন্য অসংখ্য ধন্যবাদ! 🌸 <strong>Dazzle USA</strong> সবসময় আপনার পাশে – <strong>Stay Stylish, Stay Happy!</strong>
+    </div>
+</div>
+</body>
+</html>
